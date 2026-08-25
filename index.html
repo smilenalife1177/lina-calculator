@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.4｜Web Ready</title>
+<title>微笑娜生活萬用計算機™ v2.5｜Web Ready</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -164,7 +164,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.4｜Web Ready ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.5｜Web Ready ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -363,7 +363,7 @@ ${input('fxAmt','金額','','100')}
 fuel:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>中油參考牌價</div>
 <div class="pillrow" id="fuelPills"></div>${input('fuelL','加幾公升','','30')}
 <button class="primary" onclick="calcFuel()">算這次大約多少錢</button><div id="out"></div>
-<div class="info">v2.4 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
+<div class="info">v2.5 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
 fuelcost:()=>`<div class="calcCard">${input('km','行駛公里數','100')}${input('kmpl','平均油耗 km/L','14')}${input('fuelp','每公升油價','32')}
 <button class="primary" onclick="calcFuelCost()">算油錢</button><div id="out"></div></div>`,
 loan:()=>`<div class="calcCard">${input('loanP','貸款本金','1000000')}${input('loanR','年利率 %','2.5')}${input('loanY','年數','5')}
@@ -400,19 +400,21 @@ ${input('elecDays','估算天數','','30')}
 <div class="info">此工具採「用電度數 × 自填每度電價」估算，不代表台電實際分段／時間電價帳單。</div></div>`,
 cooking:()=>`<div class="calcCard">
 ${input('cookVal','數量','','1')}
-${select('cookFrom','從',['mL','L','cc','台灣量杯（200mL）','美制杯（236.588mL）','大匙（15mL）','小匙（5mL）'])}
-${select('cookTo','換成',['mL','L','cc','台灣量杯（200mL）','美制杯（236.588mL）','大匙（15mL）','小匙（5mL）'])}
+${sel('cookFrom','從',[['mL','mL'],['L','L'],['cc','cc'],['台灣量杯（200mL）','台灣量杯（200mL）'],['美制杯（236.588mL）','美制杯（236.588mL）'],['大匙（15mL）','大匙（15mL）'],['小匙（5mL）','小匙（5mL）']])}
+${sel('cookTo','換成',[['mL','mL'],['L','L'],['cc','cc'],['台灣量杯（200mL）','台灣量杯（200mL）'],['美制杯（236.588mL）','美制杯（236.588mL）'],['大匙（15mL）','大匙（15mL）'],['小匙（5mL）','小匙（5mL）']])}
 <button class="primary" onclick="calcCooking()">換算容量</button><div id="out"></div>
 <div class="info">料理中的「杯」各地規格不同，因此台灣量杯與美制杯分開列出。</div></div>`,
 area:()=>`<div class="calcCard">
 ${input('areaVal','面積','','30')}
-${select('areaFrom','從',['坪','平方公尺 m²','平方英尺 ft²'])}
-${select('areaTo','換成',['坪','平方公尺 m²','平方英尺 ft²'])}
+${sel('areaFrom','從',[['坪','坪'],['平方公尺 m²','平方公尺 m²'],['平方英尺 ft²','平方英尺 ft²']])}
+${sel('areaTo','換成',[['坪','坪'],['平方公尺 m²','平方公尺 m²'],['平方英尺 ft²','平方英尺 ft²']])}
 <button class="primary" onclick="calcArea()">換算房屋面積</button><div id="out"></div></div>`
 
 };
 
-const initters={measure:()=>setMeasure('length'),
+const initters={cooking:()=>{setTimeout(()=>{$('#cookFrom').value='mL';$('#cookTo').value='L';},0)},
+area:()=>{setTimeout(()=>{$('#areaFrom').value='坪';$('#areaTo').value='平方公尺 m²';},0)},
+measure:()=>setMeasure('length'),
 reward:()=>restoreReward(),
 fuel:()=>renderFuelPills(),
 date:()=>{let d=new Date();$('#d2').value=d.toISOString().slice(0,10)},
