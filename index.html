@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v1.9｜Web Ready</title>
+<title>微笑娜生活萬用計算機™ v2.1｜Web Ready</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -147,6 +147,16 @@ button{cursor:pointer}
 }
 
 </style>
+
+<style>
+@media (max-width:520px){
+  .rewardTriple{gap:6px!important}
+  .rewardTriple label{font-size:12px!important}
+  .rewardTriple input{font-size:15px!important;padding-left:8px!important;padding-right:8px!important}
+  .rewardTriple [id^="rewardResult"]{font-size:14px!important;padding-left:7px!important;padding-right:7px!important}
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -154,7 +164,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v1.9｜Web Ready ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.1｜Web Ready ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -304,10 +314,11 @@ reward:()=>`<div class="calcCard">
   份數不設上限，最多可展開 7 層。
 </div>
 ${input('rewardRate','回饋比例 %','','4')}
-<div class="sectionTitle" style="margin:16px 0 8px"><b>層級明細</b><small>最多 7 層</small></div>
+<div class="sectionTitle" style="margin:16px 0 8px"><b>層級明細</b><small id="rewardCountText">共 0 份・最多 7 層</small></div>
 <div id="rewardRows"></div>
-<button class="secondary" onclick="addRewardLevel()">＋ 增加一層</button>
-<button class="primary" onclick="calcReward()">計算總回饋</button>
+<button class="secondary" type="button" onclick="addRewardLevel()">＋ 增加一層</button>
+<button class="primary" type="button" onclick="calcReward()">計算總回饋</button>
+<button class="secondary" type="button" onclick="clearReward()">清除本次資料</button>
 <div id="out"></div>
 <div class="info">
   計算方式：Σ（每層單份金額 × 份數）× 回饋比例。<br>
@@ -348,7 +359,7 @@ ${input('fxAmt','金額','','100')}
 fuel:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>中油參考牌價</div>
 <div class="pillrow" id="fuelPills"></div>${input('fuelL','加幾公升','','30')}
 <button class="primary" onclick="calcFuel()">算這次大約多少錢</button><div id="out"></div>
-<div class="info">v1.9 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
+<div class="info">v2.1 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
 fuelcost:()=>`<div class="calcCard">${input('km','行駛公里數','100')}${input('kmpl','平均油耗 km/L','14')}${input('fuelp','每公升油價','32')}
 <button class="primary" onclick="calcFuelCost()">算油錢</button><div id="out"></div></div>`,
 loan:()=>`<div class="calcCard">${input('loanP','貸款本金','1000000')}${input('loanR','年利率 %','2.5')}${input('loanY','年數','5')}
@@ -374,7 +385,7 @@ average:()=>`<div class="calcCard">${input('avgVals','數字（用逗號分開�
 };
 
 const initters={measure:()=>setMeasure('length'),
-reward:()=>initReward(),
+reward:()=>restoreReward(),
 fuel:()=>renderFuelPills(),
 date:()=>{let d=new Date();$('#d2').value=d.toISOString().slice(0,10)},
 time:()=>showTime()
@@ -385,58 +396,134 @@ function key(k){let d=$('#disp'); if(k==='C')d.value=''; else d.value+=(k==='×'
 function equals(){try{let x=$('#disp').value;if(!/^[0-9+\-*/().\s]+$/.test(x))throw 0;out(result(money(Function('"use strict";return ('+x+')')()),'計算結果'))}catch(e){out(result('算式有點怪','請檢查符號後再試一次'))}}
 
 let rewardLevels=1;
+const REWARD_STORE_KEY='nina_reward_draft_v2';
+
 function rewardRow(i,amount='',qty=''){
-  return `<div class="rewardLevel" style="border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff">
+  return `<div class="rewardLevel" data-level="${i}" style="border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <b>第 ${i} 層</b>
       ${i>1?`<button type="button" style="border:0;background:transparent;color:var(--muted);font-size:14px" onclick="removeRewardLevel(${i})">移除</button>`:''}
     </div>
-    <div class="row">
+    <div class="rewardTriple" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end">
       <div>${input(`rewardAmt${i}`,'單份金額','例如 1000',amount)}</div>
       <div>${input(`rewardQty${i}`,'份數','例如 10',qty)}</div>
+      <div>
+        <label style="display:block;color:var(--muted);margin-bottom:7px;font-size:14px">該層結果</label>
+        <div id="rewardResult${i}" style="min-height:54px;border:1px solid var(--line);border-radius:14px;background:var(--soft);display:flex;align-items:center;padding:0 10px;font-weight:800;font-size:16px;white-space:nowrap">$ 0</div>
+      </div>
     </div>
   </div>`;
 }
-function initReward(){
-  rewardLevels=1;
-  $('#rewardRows').innerHTML=rewardRow(1);
+
+function rewardDraft(){
+  const rows=[...document.querySelectorAll('.rewardLevel')];
+  return {
+    rate: $('#rewardRate')?.value || '4',
+    rows: rows.map(row=>({
+      amount: row.querySelector('input[id^="rewardAmt"]')?.value || '',
+      qty: row.querySelector('input[id^="rewardQty"]')?.value || ''
+    }))
+  };
 }
+
+function saveReward(){
+  try{
+    sessionStorage.setItem(REWARD_STORE_KEY,JSON.stringify(rewardDraft()));
+  }catch(e){}
+  updateRewardCount();
+}
+
+function bindRewardInputs(){
+  document.querySelectorAll('#rewardRate,#rewardRows input').forEach(el=>{
+    el.addEventListener('input',saveReward);
+    el.addEventListener('change',saveReward);
+  });
+}
+
+function restoreReward(){
+  let data=null;
+  try{ data=JSON.parse(sessionStorage.getItem(REWARD_STORE_KEY)||'null'); }catch(e){}
+  if(!data || !Array.isArray(data.rows) || !data.rows.length){
+    data={rate:'4',rows:[{amount:'',qty:''}]};
+  }
+  rewardLevels=Math.min(7,Math.max(1,data.rows.length));
+  $('#rewardRate').value=data.rate ?? '4';
+  const box=$('#rewardRows');
+  box.innerHTML='';
+  data.rows.slice(0,7).forEach((v,idx)=>box.insertAdjacentHTML('beforeend',rewardRow(idx+1,v.amount,v.qty)));
+  bindRewardInputs();
+  updateRewardCount();
+}
+
 function addRewardLevel(){
   if(rewardLevels>=7){
     return out(result('最多 7 層','份數本身不設上限，每一層都可以填任意份數。'));
   }
   rewardLevels++;
   $('#rewardRows').insertAdjacentHTML('beforeend',rewardRow(rewardLevels));
+  bindRewardInputs();
+  saveReward();
 }
+
 function removeRewardLevel(i){
   const rows=[...document.querySelectorAll('.rewardLevel')];
   if(rows.length<=1) return;
   rows[i-1]?.remove();
-  rewardLevels=document.querySelectorAll('.rewardLevel').length;
-  const container=$('#rewardRows');
-  const vals=[...container.querySelectorAll('.rewardLevel')].map((row,idx)=>({
+  const vals=[...document.querySelectorAll('.rewardLevel')].map(row=>({
     amount: row.querySelector('input[id^="rewardAmt"]')?.value||'',
     qty: row.querySelector('input[id^="rewardQty"]')?.value||''
   }));
+  rewardLevels=vals.length;
+  const container=$('#rewardRows');
   container.innerHTML='';
   vals.forEach((v,idx)=>container.insertAdjacentHTML('beforeend',rewardRow(idx+1,v.amount,v.qty)));
+  bindRewardInputs();
+  saveReward();
 }
+
+function updateRewardCount(){
+  const rate=num($('#rewardRate')?.value||0);
+  const rows=[...document.querySelectorAll('.rewardLevel')];
+  let totalQty=0;
+  rows.forEach((row,idx)=>{
+    const amount=num(row.querySelector('input[id^="rewardAmt"]')?.value||0);
+    const qty=num(row.querySelector('input[id^="rewardQty"]')?.value||0);
+    totalQty+=qty;
+    const layerReward=amount*qty*rate/100;
+    const box=$(`#rewardResult${idx+1}`);
+    if(box) box.textContent=`$ ${money(layerReward)}`;
+  });
+  const txt=$('#rewardCountText');
+  if(txt) txt.textContent=`共 ${money(totalQty)} 份・${rows.length} 層`;
+}
+
+function clearReward(){
+  try{ sessionStorage.removeItem(REWARD_STORE_KEY); }catch(e){}
+  rewardLevels=1;
+  $('#rewardRate').value='4';
+  $('#rewardRows').innerHTML=rewardRow(1);
+  $('#out').innerHTML='';
+  bindRewardInputs();
+  updateRewardCount();
+}
+
 function calcReward(){
   const rate=num($('#rewardRate').value);
   if(rate<0) return out(result('請檢查回饋比例','比例不能小於 0'));
   const rows=[...document.querySelectorAll('.rewardLevel')];
-  let base=0, totalQty=0, details=[];
+  let base=0,totalQty=0,details=[];
   rows.forEach((row,idx)=>{
     const a=num(row.querySelector('input[id^="rewardAmt"]').value);
     const q=num(row.querySelector('input[id^="rewardQty"]').value);
     const subtotal=a*q;
     base+=subtotal;
     totalQty+=q;
-    details.push(`第 ${idx+1} 層：$${money(subtotal)}`);
+    details.push(`第 ${idx+1} 層：${money(q)} 份・$${money(subtotal)}`);
   });
   const reward=base*rate/100;
+  saveReward();
   out(result(`$ ${money(reward)}`,
-    `<b>總計算基礎：</b>$${money(base)}<br><b>總份數：</b>${money(totalQty)} 份<br><b>回饋比例：</b>${money(rate)}%<br><b>層數：</b>${rows.length} 層<br>${details.join(' ・ ')}`));
+    `<b>總計算基礎：</b>$${money(base)}<br><b>總份數：</b>${money(totalQty)} 份<br><b>回饋比例：</b>${money(rate)}%<br><b>層數：</b>${rows.length} 層<br>${details.join('<br>')}`));
 }
 
 function calcDiscount(){
