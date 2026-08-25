@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.2｜Web Ready</title>
+<title>微笑娜生活萬用計算機™ v2.3｜Web Ready</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -164,7 +164,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.2｜Web Ready ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.3｜Web Ready ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -306,7 +306,7 @@ function sel(id,label,opts){return `<label class="label">${label}</label><select
 
 const builders={
 basic:()=>`<div class="calcCard">${input('disp','算式','','','text')}<div class="kbd">
-${['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','⌫','+'].map(x=>`<button class="${'÷×−+'.includes(x)?'op':''}" onclick="x==='⌫'?backspace():key(x)">${x}</button>`).join('')}<button style="grid-column:1/-1" onclick="key('C')">C 全部清除</button>
+${['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','⌫','+'].map(x=>`<button class="${'÷×−+'.includes(x)?'op':''}" onclick="${x==='⌫'?'backspace()':`key('${x}')`}">${x}</button>`).join('')}<button style="grid-column:1/-1" onclick="key('C')">C 全部清除</button>
 <button class="eq" style="grid-column:1/-1" onclick="equals()">＝</button></div><div id="out"></div></div>`,
 reward:()=>`<div class="calcCard">
 <div class="info" style="margin-top:0">
@@ -359,7 +359,7 @@ ${input('fxAmt','金額','','100')}
 fuel:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>中油參考牌價</div>
 <div class="pillrow" id="fuelPills"></div>${input('fuelL','加幾公升','','30')}
 <button class="primary" onclick="calcFuel()">算這次大約多少錢</button><div id="out"></div>
-<div class="info">v2.2 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
+<div class="info">v2.3 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
 fuelcost:()=>`<div class="calcCard">${input('km','行駛公里數','100')}${input('kmpl','平均油耗 km/L','14')}${input('fuelp','每公升油價','32')}
 <button class="primary" onclick="calcFuelCost()">算油錢</button><div id="out"></div></div>`,
 loan:()=>`<div class="calcCard">${input('loanP','貸款本金','1000000')}${input('loanR','年利率 %','2.5')}${input('loanY','年數','5')}
@@ -393,6 +393,7 @@ time:()=>showTime()
 
 function out(html){$('#out').innerHTML=html}
 function key(k){let d=$('#disp'); if(k==='C')d.value=''; else d.value+=(k==='×'?'*':k==='÷'?'/':k==='−'?'-':k)}
+/* v2.3 退格：按鈕直接呼叫，不依賴 map 變數 scope */
 function backspace(){
   const d=$('#disp');
   if(!d) return;
