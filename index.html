@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.3｜Web Ready</title>
+<title>微笑娜生活萬用計算機™ v2.4｜Web Ready</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -164,7 +164,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.3｜Web Ready ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.4｜Web Ready ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -244,7 +244,11 @@ const tools=[
 {id:'measure',cat:'基本',emoji:'📏',name:'尺寸換算',sub:'長度・坪數・重量・容量'},
 {id:'temp',cat:'基本',emoji:'🌡️',name:'溫度換算',sub:'°C・°F'},
 {id:'time',cat:'日期',emoji:'🌍',name:'世界時間',sub:'台北・東京・紐約等'},
-{id:'hex',cat:'基本',emoji:'🔢',name:'進位轉換器',sub:'2・8・10・16 進位'}
+{id:'hex',cat:'基本',emoji:'🔢',name:'進位轉換器',sub:'2・8・10・16 進位'},
+{id:'salary',cat:'金錢',emoji:'💼',name:'薪資／時薪換算',sub:'月薪・時薪・工時'},
+{id:'electricity',cat:'金錢',emoji:'⚡',name:'電費估算',sub:'度數・每度電價'},
+{id:'cooking',cat:'基本',emoji:'🥛',name:'水量／料理容量換算',sub:'mL・L・cc・杯・大匙・小匙'},
+{id:'area',cat:'基本',emoji:'🏡',name:'坪數／房屋面積換算',sub:'坪・平方公尺・平方英尺'}
 ];
 
 let favorites=JSON.parse(localStorage.getItem('nina_calc_favs')||'[]');
@@ -359,7 +363,7 @@ ${input('fxAmt','金額','','100')}
 fuel:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>中油參考牌價</div>
 <div class="pillrow" id="fuelPills"></div>${input('fuelL','加幾公升','','30')}
 <button class="primary" onclick="calcFuel()">算這次大約多少錢</button><div id="out"></div>
-<div class="info">v2.3 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
+<div class="info">v2.4 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
 fuelcost:()=>`<div class="calcCard">${input('km','行駛公里數','100')}${input('kmpl','平均油耗 km/L','14')}${input('fuelp','每公升油價','32')}
 <button class="primary" onclick="calcFuelCost()">算油錢</button><div id="out"></div></div>`,
 loan:()=>`<div class="calcCard">${input('loanP','貸款本金','1000000')}${input('loanR','年利率 %','2.5')}${input('loanY','年數','5')}
@@ -382,6 +386,30 @@ time:()=>`<div class="calcCard">${sel('tz','城市',[['Asia/Taipei','台北'],['
 hex:()=>`<div class="calcCard">${input('baseVal','數字','255','255','text')}${sel('fromBase','原進位',[[2,'2 進位'],[8,'8 進位'],[10,'10 進位'],[16,'16 進位']])}
 <button class="primary" onclick="calcBase()">轉換</button><div id="out"></div></div>`,
 average:()=>`<div class="calcCard">${input('avgVals','數字（用逗號分開）','80, 90, 100','','text')}<button class="primary" onclick="calcAvg()">算平均</button><div id="out"></div></div>`
+,
+salary:()=>`<div class="calcCard">
+${input('salMonthly','月薪','','40000')}
+${input('salDays','每月工作天數','','22')}
+${input('salHours','每天工時','','8')}
+<button class="primary" onclick="calcSalary()">換算薪資／時薪</button><div id="out"></div></div>`,
+electricity:()=>`<div class="calcCard">
+${input('elecKwh','用電度數（kWh／度）','','300')}
+${input('elecRate','每度電價（元）','','3.5')}
+${input('elecDays','估算天數','','30')}
+<button class="primary" onclick="calcElectricity()">估算電費</button><div id="out"></div>
+<div class="info">此工具採「用電度數 × 自填每度電價」估算，不代表台電實際分段／時間電價帳單。</div></div>`,
+cooking:()=>`<div class="calcCard">
+${input('cookVal','數量','','1')}
+${select('cookFrom','從',['mL','L','cc','台灣量杯（200mL）','美制杯（236.588mL）','大匙（15mL）','小匙（5mL）'])}
+${select('cookTo','換成',['mL','L','cc','台灣量杯（200mL）','美制杯（236.588mL）','大匙（15mL）','小匙（5mL）'])}
+<button class="primary" onclick="calcCooking()">換算容量</button><div id="out"></div>
+<div class="info">料理中的「杯」各地規格不同，因此台灣量杯與美制杯分開列出。</div></div>`,
+area:()=>`<div class="calcCard">
+${input('areaVal','面積','','30')}
+${select('areaFrom','從',['坪','平方公尺 m²','平方英尺 ft²'])}
+${select('areaTo','換成',['坪','平方公尺 m²','平方英尺 ft²'])}
+<button class="primary" onclick="calcArea()">換算房屋面積</button><div id="out"></div></div>`
+
 };
 
 const initters={measure:()=>setMeasure('length'),
@@ -688,6 +716,35 @@ function niceNum(n){return Math.abs(n)>=100?n.toLocaleString('zh-TW',{maximumFra
 function calcMeasure(){let v=num($('#measureVal').value),u=$('#measureUnit').value,d=measureDefs[currentMeasure],base=v*d[u];let rows=Object.entries(d).map(([n,f])=>`<div class="convertBox"><b>${n}</b><span>${niceNum(base/f)}</span></div>`).join('');out(`<div class="result"><div class="convertGrid">${rows}</div></div>`)}
 function calcTemp(){let v=num($('#tempVal').value),u=$('#tempUnit').value,c=u==='c'?v:(v-32)*5/9,f=u==='f'?v:v*9/5+32;out(result(`${niceNum(c)} °C`,`${niceNum(f)} °F`))}
 
+
+function calcSalary(){
+ const monthly=num($('#salMonthly').value),days=num($('#salDays').value),hours=num($('#salHours').value);
+ if(monthly<=0||days<=0||hours<=0){$('#out').innerHTML=result('請檢查輸入','月薪、工作天數、每天工時都要大於 0');return}
+ const mh=days*hours, hourly=monthly/mh, daily=monthly/days;
+ $('#out').innerHTML=result('$ '+money(hourly)+'/時',`約 $${money(daily)}/日 ・ 每月 ${money(mh)} 小時 ・ 月薪 $${money(monthly)}`);
+}
+function calcElectricity(){
+ const kwh=num($('#elecKwh').value),rate=num($('#elecRate').value),days=num($('#elecDays').value);
+ if(kwh<0||rate<0){$('#out').innerHTML=result('請檢查輸入','度數與電價不可小於 0');return}
+ const total=kwh*rate, perday=days>0?total/days:0;
+ $('#out').innerHTML=result('$ '+money(total),`以 ${money(kwh)} 度 × $${money(rate)}/度估算${days>0?` ・ 約 $${money(perday)}/日`:''}`);
+}
+function cookML(unit){
+ return {'mL':1,'L':1000,'cc':1,'台灣量杯（200mL）':200,'美制杯（236.588mL）':236.588,'大匙（15mL）':15,'小匙（5mL）':5}[unit];
+}
+function calcCooking(){
+ const v=num($('#cookVal').value),f=$('#cookFrom').value,to=$('#cookTo').value;
+ const ans=v*cookML(f)/cookML(to);
+ $('#out').innerHTML=result(money(ans)+' '+to,`${money(v)} ${f} ＝ ${money(ans)} ${to}`);
+}
+function areaM2(unit){
+ return {'坪':3.305785,'平方公尺 m²':1,'平方英尺 ft²':0.09290304}[unit];
+}
+function calcArea(){
+ const v=num($('#areaVal').value),f=$('#areaFrom').value,to=$('#areaTo').value;
+ const ans=v*areaM2(f)/areaM2(to);
+ $('#out').innerHTML=result(money(ans)+' '+to,`${money(v)} ${f} ＝ ${money(ans)} ${to}`);
+}
 </script>
 </body>
 </html>
