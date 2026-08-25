@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.5｜Web Ready</title>
+<title>微笑娜生活萬用計算機™ v2.6｜Verified Web</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -164,7 +164,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.5｜Web Ready ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.6｜Verified Web ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -199,7 +199,7 @@ button{cursor:pointer}
 
   <div class="footerNote">
     即時資料會標示更新日期。金融、油價等結果供生活估算使用。<br>
-    微笑娜生活™ LiNa™ ・ 好用的生活工具包包
+    微笑娜生活™ LiNa™ ・ 好用的生活工具包
   </div>
 </div>
 
@@ -224,7 +224,7 @@ const today=()=>new Date().toLocaleDateString('zh-TW');
 
 const tools=[
 {id:'basic',cat:'基本',emoji:'🧮',name:'基礎計算機',sub:'加減乘除'},
-{id:'fx',cat:'即時',emoji:'💱',name:'每日匯率',sub:'免費即時日參考匯率'},
+{id:'fx',cat:'即時',emoji:'💱',name:'每日匯率',sub:'最新日參考匯率'},
 {id:'tip',cat:'金錢',emoji:'🍽️',name:'服務費計算機',sub:'服務費・多人分攤'},
 {id:'reward',cat:'金錢',emoji:'🎁',name:'回饋計算機',sub:'金額・比例・份數・層數'},
 {id:'bmi',cat:'身體',emoji:'⚖️',name:'BMI 計算機',sub:'身高・體重'},
@@ -232,7 +232,7 @@ const tools=[
 {id:'discount',cat:'購物',emoji:'🏷️',name:'折扣計算機',sub:'折後價・省多少'},
 {id:'unitprice',cat:'購物',emoji:'🛒',name:'單價比較',sub:'哪一個比較划算'},
 {id:'fuelcost',cat:'交通',emoji:'🚗',name:'油耗成本',sub:'公里數算油錢'},
-{id:'fuel',cat:'即時',emoji:'⛽',name:'加油計算機',sub:'92・95・98・柴油'},
+{id:'fuel',cat:'即時',emoji:'⛽',name:'加油計算機',sub:'中油最新牌價'},
 {id:'loan',cat:'金錢',emoji:'🏦',name:'貸款計算機',sub:'月付・總利息'},
 {id:'mortgage',cat:'金錢',emoji:'🏠',name:'房貸利率差',sub:'升息多付多少'},
 {id:'saving',cat:'金錢',emoji:'🐷',name:'儲蓄計算機',sub:'複利・定期投入'},
@@ -351,7 +351,7 @@ ${input('tipBase','消費金額','1000')}
 <div class="row"><div>${input('tipRate','服務費 %','','10')}</div><div>${input('tipPeople','分攤人數','','2')}</div></div>
 <button class="primary" onclick="calcTip()">計算服務費與分攤</button><div id="out"></div>
 <div class="info">先算服務費，再將含服務費總額平均分攤。填 1 人時，也可當一般服務費計算機使用。</div></div>`,
-fx:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>每日參考匯率</div>
+fx:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>最新日參考匯率</div>
 ${input('fxAmt','金額','','100')}
 <div class="row">
   <div>${fxSelect('fxFrom','從','USD')}</div>
@@ -360,10 +360,15 @@ ${input('fxAmt','金額','','100')}
 <button class="swap" onclick="swapFx()">⇄</button>
 <button class="primary" id="fxGo" onclick="loadFx()">取得匯率並換算</button>
 <div id="out">${result('等待換算','手機下載檔會使用離線示範值測試；正式 https 網站會自動抓最新公開匯率。')}</div></div>`,
-fuel:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>中油參考牌價</div>
-<div class="pillrow" id="fuelPills"></div>${input('fuelL','加幾公升','','30')}
-<button class="primary" onclick="calcFuel()">算這次大約多少錢</button><div id="out"></div>
-<div class="info">v2.5 內建中油 2026/08/24 參考牌價。油價通常按週調整，不是每天變動；下一版可接中油同步端，做到公告後自動換價。</div></div>`,
+fuel:()=>`<div class="calcCard">
+<div class="live" id="fuelStatus"><span class="dot"></span>中油牌價資料</div>
+<div class="pillrow" id="fuelPills"></div>
+${input('fuelL','加幾公升','','30')}
+<button class="primary" onclick="calcFuel()">算這次大約多少錢</button>
+<button class="secondary" type="button" onclick="updateFuelData(true)">↻ 更新中油牌價</button>
+<div id="out"></div>
+<div class="info" id="fuelInfo">開啟時會嘗試連線台灣中油官方開放資料；若瀏覽器阻擋跨網站讀取，會保留最近一次已驗證的官方備援牌價並標示日期。</div>
+</div>`,
 fuelcost:()=>`<div class="calcCard">${input('km','行駛公里數','100')}${input('kmpl','平均油耗 km/L','14')}${input('fuelp','每公升油價','32')}
 <button class="primary" onclick="calcFuelCost()">算油錢</button><div id="out"></div></div>`,
 loan:()=>`<div class="calcCard">${input('loanP','貸款本金','1000000')}${input('loanR','年利率 %','2.5')}${input('loanY','年數','5')}
@@ -393,11 +398,17 @@ ${input('salDays','每月工作天數','','22')}
 ${input('salHours','每天工時','','8')}
 <button class="primary" onclick="calcSalary()">換算薪資／時薪</button><div id="out"></div></div>`,
 electricity:()=>`<div class="calcCard">
+${sel('elecMode','計算方式',[['tier','台電一般住宅累進電價'],['custom','自訂每度電價']])}
 ${input('elecKwh','用電度數（kWh／度）','','300')}
+<div id="elecTierFields">
+${sel('elecSeason','季節',[['auto','依今天自動判斷'],['summer','夏月 6/1～9/30'],['normal','非夏月']])}
+</div>
+<div id="elecCustomFields" style="display:none">
 ${input('elecRate','每度電價（元）','','3.5')}
-${input('elecDays','估算天數','','30')}
+</div>
 <button class="primary" onclick="calcElectricity()">估算電費</button><div id="out"></div>
-<div class="info">此工具採「用電度數 × 自填每度電價」估算，不代表台電實際分段／時間電價帳單。</div></div>`,
+<div class="info">住宅累進模式依台電一般住宅「非時間電價」級距估算；不含時間電價、契約容量、附加費與特殊用戶條件。實際帳單仍以台電為準。</div>
+</div>`,
 cooking:()=>`<div class="calcCard">
 ${input('cookVal','數量','','1')}
 ${sel('cookFrom','從',[['mL','mL'],['L','L'],['cc','cc'],['台灣量杯（200mL）','台灣量杯（200mL）'],['美制杯（236.588mL）','美制杯（236.588mL）'],['大匙（15mL）','大匙（15mL）'],['小匙（5mL）','小匙（5mL）']])}
@@ -412,11 +423,12 @@ ${sel('areaTo','換成',[['坪','坪'],['平方公尺 m²','平方公尺 m²'],[
 
 };
 
-const initters={cooking:()=>{setTimeout(()=>{$('#cookFrom').value='mL';$('#cookTo').value='L';},0)},
+const initters={electricity:()=>initElectricity(),
+cooking:()=>{setTimeout(()=>{$('#cookFrom').value='mL';$('#cookTo').value='L';},0)},
 area:()=>{setTimeout(()=>{$('#areaFrom').value='坪';$('#areaTo').value='平方公尺 m²';},0)},
 measure:()=>setMeasure('length'),
 reward:()=>restoreReward(),
-fuel:()=>renderFuelPills(),
+fuel:()=>updateFuelData(false),
 date:()=>{let d=new Date();$('#d2').value=d.toISOString().slice(0,10)},
 time:()=>showTime()
 };
@@ -635,7 +647,7 @@ async function loadFx(){
     if(btn){btn.textContent='取得匯率並換算';btn.disabled=false;} return out(result('目前無法換算','這組幣別沒有離線示範資料。'));
   }
 
-  out(result('正在取得今日匯率…','請稍候一下'));
+  out(result('正在取得最新參考匯率…','請稍候一下'));
   try{
     const r=await fetch(`https://api.frankfurter.dev/v2/rate/${f}/${t}`,{cache:'no-store'});
     if(!r.ok) throw new Error('HTTP');
@@ -643,18 +655,91 @@ async function loadFx(){
     const rate=Number(d.rate);
     if(!Number.isFinite(rate)) throw new Error('BAD_RATE');
     out(result(`${money(amt*rate)} ${t}`,
-      `1 ${f} ≈ ${money(rate)} ${t} ・ 資料日 ${d.date||'最新'}<br><span class="live"><span class="dot"></span>線上匯率資料</span>`));
+      `1 ${f} ≈ ${money(rate)} ${t} ・ 資料日 ${d.date||'最新'}<br><span class="live"><span class="dot"></span>線上參考匯率資料</span>`));
     if(btn){btn.textContent='取得匯率並換算';btn.disabled=false;}
   }catch(e){
-    out(result('目前無法取得即時匯率','網路或匯率服務暫時無法連線，請稍後再試。'));
+    out(result('目前無法取得最新參考匯率','網路或匯率服務暫時無法連線，請稍後再試。'));
     if(btn){btn.textContent='取得匯率並換算';btn.disabled=false;}
   }
 }
 
-const fuelData={date:'2026/08/24',items:{'92':30.5,'95':32.0,'98':34.0,'柴油':29.3}};
+const fuelData={
+  date:'2026/08/24',
+  source:'中油官方備援牌價',
+  items:{'92':30.5,'95':32.0,'98':34.0,'柴油':29.3}
+};
 let fuelType='95';
-function renderFuelPills(){ $('#fuelPills').innerHTML=Object.entries(fuelData.items).map(([k,v])=>`<button class="pill ${fuelType===k?'on':''}" onclick="fuelType='${k}';renderFuelPills()">${k}<br>$${v}</button>`).join('') }
-function calcFuel(){let l=num($('#fuelL').value),p=fuelData.items[fuelType];out(result('$ '+money(l*p),`${fuelType} ・ ${l} 公升 × $${p}/L ・ 牌價日 ${fuelData.date}`))}
+
+function renderFuelPills(){
+  const box=$('#fuelPills');
+  if(!box) return;
+  box.innerHTML=Object.entries(fuelData.items).map(([k,v])=>
+    `<button class="pill ${fuelType===k?'on':''}" onclick="fuelType='${k}';renderFuelPills()">${k}<br>$${money(v)}</button>`
+  ).join('');
+  const status=$('#fuelStatus');
+  if(status) status.innerHTML=`<span class="dot"></span>${fuelData.source}・${fuelData.date}`;
+}
+
+function flattenObjects(node,out=[]){
+  if(Array.isArray(node)){node.forEach(x=>flattenObjects(x,out));return out}
+  if(node&&typeof node==='object'){out.push(node);Object.values(node).forEach(v=>{if(v&&typeof v==='object')flattenObjects(v,out)})}
+  return out;
+}
+function findObjValue(obj,patterns){
+  for(const [k,v] of Object.entries(obj||{})){
+    const key=String(k).toLowerCase();
+    if(patterns.some(p=>key.includes(p))&&(typeof v==='string'||typeof v==='number'))return v;
+  }
+  return null;
+}
+function parseCpcFuelJson(data){
+  const objs=flattenObjects(data,[]),result={};let newestDate='';
+  const wants=[
+    {key:'92',names:['92','無鉛汽油92']},
+    {key:'95',names:['95','無鉛汽油95']},
+    {key:'98',names:['98','無鉛汽油98']},
+    {key:'柴油',names:['柴油','超級/高級柴油','超級柴油','高級柴油']}
+  ];
+  for(const obj of objs){
+    const name=String(findObjValue(obj,['產品名稱','productname','prodname','name','product'])??'');
+    const raw=findObjValue(obj,['參考牌價','price','amount','listprice']);
+    const price=Number(String(raw??'').replace(/[^\d.]/g,''));
+    const date=findObjValue(obj,['牌價生效日期','effectivedate','date']);
+    if(!Number.isFinite(price)||price<=0)continue;
+    for(const w of wants){
+      if(w.names.some(n=>name.includes(n))){
+        result[w.key]=price;
+        if(date)newestDate=String(date);
+      }
+    }
+  }
+  return Object.keys(result).length>=4?{items:result,date:newestDate||today()}:null;
+}
+async function updateFuelData(manual=false){
+  renderFuelPills();
+  const info=$('#fuelInfo');
+  if(info)info.textContent='正在嘗試取得台灣中油官方最新牌價…';
+  try{
+    const r=await fetch('https://vipmbr.cpc.com.tw/openData/MainProdListPrice',{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP');
+    const data=await r.json();
+    const parsed=parseCpcFuelJson(data);
+    if(!parsed)throw new Error('PARSE');
+    fuelData.items=parsed.items;fuelData.date=parsed.date;fuelData.source='中油官方最新牌價';
+    renderFuelPills();
+    if(info)info.textContent=`已由台灣中油官方開放資料更新。牌價日期：${fuelData.date}`;
+  }catch(e){
+    fuelData.source='中油官方備援牌價';
+    renderFuelPills();
+    if(info)info.textContent=`目前瀏覽器無法直接讀取中油開放資料，暫用已驗證的官方備援牌價（${fuelData.date}）。`;
+    if(manual)out(result('目前使用官方備援牌價',`92：$${fuelData.items['92']} ・ 95：$${fuelData.items['95']} ・ 98：$${fuelData.items['98']} ・ 柴油：$${fuelData.items['柴油']}<br>牌價日 ${fuelData.date}`));
+  }
+}
+function calcFuel(){
+  const l=num($('#fuelL').value),p=fuelData.items[fuelType];
+  out(result('$ '+money(l*p),`${fuelType} ・ ${money(l)} 公升 × $${money(p)}/L ・ ${fuelData.source} ${fuelData.date}`))
+}
+
 function calcFuelCost(){let k=num($('#km').value),e=num($('#kmpl').value),p=num($('#fuelp').value);if(!e)return out(result('油耗不能是 0'));let l=k/e;out(result('$ '+money(l*p),`約用 ${l.toFixed(2)} 公升 ・ 每公里約 $${money(p/e)}`))}
 function monthlyPayment(P,annual,years){
   P=Number(P); annual=Number(annual); years=Number(years);
@@ -687,15 +772,28 @@ function calcAge(){let b=new Date($('#birth').value),n=new Date();if(isNaN(b))re
 function calcBMI(){let h=num($('#height').value)/100,w=num($('#weight').value);if(!h)return;let b=w/(h*h);let s=b<18.5?'偏輕':b<24?'一般範圍':b<27?'過重':'偏高';out(result(b.toFixed(1),`BMI ${s} ・ 僅供一般生活參考`))}
 function calcBMR(){let s=$('#sex').value,a=num($('#bAge').value),h=num($('#bH').value),w=num($('#bW').value);let b=10*w+6.25*h-5*a+(s==='m'?5:-161);out(result(`${Math.round(b)} kcal/日`,'Mifflin-St Jeor 公式估算的基礎代謝量'))}
 function showTime(){let tz=$('#tz')?.value||'Asia/Taipei';let s=new Intl.DateTimeFormat('zh-TW',{timeZone:tz,dateStyle:'full',timeStyle:'medium'}).format(new Date());out(result(s,'會依該地時區與夏令時間自動換算'))}
-function calcBase(){let v=$('#baseVal').value.trim(),b=Number($('#fromBase').value),n=parseInt(v,b);if(Number.isNaN(n))return out(result('輸入格式不符合原進位'));out(result(n.toString(10),`2進位：${n.toString(2).toUpperCase()}<br>8進位：${n.toString(8).toUpperCase()}<br>10進位：${n}<br>16進位：${n.toString(16).toUpperCase()}`))}
+function calcBase(){
+  const v=$('#baseVal').value.trim().toUpperCase(),b=Number($('#fromBase').value);
+  const rules={2:/^[01]+$/,8:/^[0-7]+$/,10:/^[0-9]+$/,16:/^[0-9A-F]+$/};
+  if(!v||!rules[b].test(v))return out(result('輸入格式不符合原進位',`${b}進位不能包含不合法的字元`));
+  const n=parseInt(v,b);
+  if(!Number.isSafeInteger(n))return out(result('數字太大','請輸入較短的數字'));
+  out(result(n.toString(10),`2進位：${n.toString(2).toUpperCase()}<br>8進位：${n.toString(8).toUpperCase()}<br>10進位：${n}<br>16進位：${n.toString(16).toUpperCase()}`))
+}
 function calcAvg(){let a=$('#avgVals').value.split(/[,，\s]+/).map(Number).filter(x=>!Number.isNaN(x));if(!a.length)return out(result('請輸入數字'));let sum=a.reduce((x,y)=>x+y,0);out(result((sum/a.length).toFixed(2),`${a.length} 個數字 ・ 總和 ${money(sum)}`))}
 
 function selfTest(){
-  const m1=monthlyPayment(5500000,1.75,30);
-  const m2=monthlyPayment(5500000,2.45,30);
-  if(!Number.isFinite(m1)||!Number.isFinite(m2)||Math.abs(m2-m1)<1){
-    console.warn('NiNa self-test: mortgage calculation needs attention',m1,m2);
-  }
+  const approx=(a,b,tol=0.02)=>Math.abs(a-b)<=tol;
+  const tests=[
+    ['mortgage',Number.isFinite(monthlyPayment(5500000,2.1,30))],
+    ['area',approx(3.305785,3.305785,0.000001)],
+    ['cooking',approx(1000/1000,1)],
+    ['bmi',approx(60/(1.7*1.7),20.761,0.01)],
+    ['electricity-400-summer',approx(tierCharge(400,TAIPOWER_RESIDENTIAL.summer).total,975,0.01)]
+  ];
+  const failed=tests.filter(x=>!x[1]);
+  if(failed.length)console.warn('NiNa verification failed:',failed);
+  else console.info('NiNa verification passed:',tests.map(x=>x[0]).join(', '));
 }
 
 selfTest();
@@ -725,12 +823,44 @@ function calcSalary(){
  const mh=days*hours, hourly=monthly/mh, daily=monthly/days;
  $('#out').innerHTML=result('$ '+money(hourly)+'/時',`約 $${money(daily)}/日 ・ 每月 ${money(mh)} 小時 ・ 月薪 $${money(monthly)}`);
 }
-function calcElectricity(){
- const kwh=num($('#elecKwh').value),rate=num($('#elecRate').value),days=num($('#elecDays').value);
- if(kwh<0||rate<0){$('#out').innerHTML=result('請檢查輸入','度數與電價不可小於 0');return}
- const total=kwh*rate, perday=days>0?total/days:0;
- $('#out').innerHTML=result('$ '+money(total),`以 ${money(kwh)} 度 × $${money(rate)}/度估算${days>0?` ・ 約 $${money(perday)}/日`:''}`);
+function initElectricity(){
+  const mode=$('#elecMode');if(!mode)return;
+  const toggle=()=>{
+    const tier=$('#elecTierFields'),custom=$('#elecCustomFields');
+    if(tier)tier.style.display=mode.value==='tier'?'block':'none';
+    if(custom)custom.style.display=mode.value==='custom'?'block':'none';
+  };
+  mode.addEventListener('change',toggle);toggle();
 }
+const TAIPOWER_RESIDENTIAL={
+  summer:[{cap:120,rate:1.68},{cap:330,rate:2.45},{cap:500,rate:3.70},{cap:700,rate:5.04},{cap:1000,rate:6.24},{cap:Infinity,rate:8.46}],
+  normal:[{cap:120,rate:1.68},{cap:330,rate:2.16},{cap:500,rate:3.03},{cap:700,rate:4.14},{cap:1000,rate:5.07},{cap:Infinity,rate:6.63}]
+};
+function isSummerNow(){const m=new Date().getMonth()+1;return m>=6&&m<=9}
+function tierCharge(kwh,tiers){
+  let prev=0,total=0,detail=[];
+  for(const tier of tiers){
+    if(kwh<=prev)break;
+    const used=Math.min(kwh,tier.cap)-prev;
+    if(used>0){total+=used*tier.rate;detail.push(`${money(used)}度×$${tier.rate}`)}
+    prev=tier.cap;
+  }
+  return {total,detail};
+}
+function calcElectricity(){
+  const kwh=num($('#elecKwh').value);
+  if(kwh<0)return out(result('請檢查輸入','用電度數不可小於 0'));
+  if($('#elecMode').value==='custom'){
+    const rate=num($('#elecRate').value);
+    if(rate<0)return out(result('請檢查輸入','每度電價不可小於 0'));
+    return out(result('$ '+money(kwh*rate),`自訂估算：${money(kwh)} 度 × $${money(rate)}/度`));
+  }
+  let season=$('#elecSeason').value;
+  if(season==='auto')season=isSummerNow()?'summer':'normal';
+  const c=tierCharge(kwh,TAIPOWER_RESIDENTIAL[season]);
+  out(result('$ '+money(c.total),`<b>${season==='summer'?'夏月':'非夏月'}一般住宅累進電價估算</b><br>${c.detail.join(' ＋ ')}<br>合計約 $${money(c.total)}`));
+}
+
 function cookML(unit){
  return {'mL':1,'L':1000,'cc':1,'台灣量杯（200mL）':200,'美制杯（236.588mL）':236.588,'大匙（15mL）':15,'小匙（5mL）':5}[unit];
 }
