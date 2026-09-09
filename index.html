@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.8｜Live Life Data</title>
+<title>微笑娜生活萬用計算機™ v2.9｜答案不用找</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -146,6 +146,28 @@ button{cursor:pointer}
   }
 }
 
+
+/* v2.9｜答案不用找 */
+.basicTopResult .result{
+  margin-top:8px;
+  padding:11px 14px;
+  border-radius:16px;
+}
+.basicTopResult .result .big{
+  font-size:27px;
+  line-height:1.15;
+}
+.basicTopResult .result .caption{
+  margin-top:4px;
+  font-size:13px;
+  line-height:1.35;
+}
+@media(max-width:520px){
+  .basicTopResult .result{padding:9px 12px}
+  .basicTopResult .result .big{font-size:25px}
+  .basicTopResult .result .caption{font-size:12px}
+}
+
 </style>
 
 <style>
@@ -164,7 +186,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.8｜Live Life Data ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v2.9｜答案不用找 ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -309,9 +331,14 @@ function input(id,label,ph='',val='',type='number'){return `<label class="label"
 function sel(id,label,opts){return `<label class="label">${label}</label><select class="select" id="${id}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`}
 
 const builders={
-basic:()=>`<div class="calcCard">${input('disp','算式','','','text')}<div class="kbd">
-${['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','⌫','+'].map(x=>`<button class="${'÷×−+'.includes(x)?'op':''}" onclick="${x==='⌫'?'backspace()':`key('${x}')`}">${x}</button>`).join('')}<button style="grid-column:1/-1" onclick="key('C')">C 全部清除</button>
-<button class="eq" style="grid-column:1/-1" onclick="equals()">＝</button></div><div id="out"></div></div>`,
+basic:()=>`<div class="calcCard">
+${input('disp','算式','','','text')}
+<div id="out" class="basicTopResult">${result('•••','計算結果會顯示在這裡')}</div>
+<div class="kbd">
+${['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','⌫','+'].map(x=>`<button class="${'÷×−+'.includes(x)?'op':''}" onclick="${x==='⌫'?'backspace()':`key('${x}')`}">${x}</button>`).join('')}
+<button style="grid-column:1/-1" onclick="key('C')">C 全部清除</button>
+<button class="eq" style="grid-column:1/-1" onclick="equals()">＝</button>
+</div></div>`,
 reward:()=>`<div class="calcCard">
 <div class="info" style="margin-top:0">
   一般回饋試算：每層可自己填「單份金額 × 份數」，回饋率也可自訂。<br>
@@ -435,8 +462,31 @@ date:()=>{let d=new Date();$('#d2').value=d.toISOString().slice(0,10)},
 time:()=>showTime()
 };
 
-function out(html){$('#out').innerHTML=html}
-function key(k){let d=$('#disp'); if(k==='C')d.value=''; else d.value+=(k==='×'?'*':k==='÷'?'/':k==='−'?'-':k)}
+function out(html){
+  const el=$('#out');
+  if(!el)return;
+  el.innerHTML=html;
+  requestAnimationFrame(()=>{
+    const r=el.getBoundingClientRect();
+    const topSafe=86;
+    const bottomSafe=window.innerHeight-22;
+    if(r.bottom>bottomSafe || r.top<topSafe){
+      try{el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+      catch(e){el.scrollIntoView();}
+    }
+  });
+}
+function key(k){
+  const d=$('#disp');
+  if(!d)return;
+  if(k==='C'){
+    d.value='';
+    const o=$('#out');
+    if(o)o.innerHTML=result('•••','計算結果會顯示在這裡');
+  }else{
+    d.value+=(k==='×'?'*':k==='÷'?'/':k==='−'?'-':k);
+  }
+}
 /* v2.3 退格：按鈕直接呼叫，不依賴 map 變數 scope */
 function backspace(){
   const d=$('#disp');
@@ -444,7 +494,20 @@ function backspace(){
   d.value=String(d.value||'').slice(0,-1);
   d.focus();
 }
-function equals(){try{let x=$('#disp').value;if(!/^[0-9+\-*/().\s]+$/.test(x))throw 0;out(result(money(Function('"use strict";return ('+x+')')()),'計算結果'))}catch(e){out(result('算式有點怪','請檢查符號後再試一次'))}}
+function equals(){
+  try{
+    const d=$('#disp');
+    const x=d.value;
+    if(!/^[0-9+\-*/().\s]+$/.test(x))throw 0;
+    const raw=Function('"use strict";return ('+x+')')();
+    if(!Number.isFinite(raw))throw 0;
+    const ans=money(raw);
+    out(result(ans,'計算結果'));
+    d.value=String(raw);
+  }catch(e){
+    out(result('算式有點怪','請檢查符號後再試一次'));
+  }
+}
 
 let rewardLevels=1;
 const REWARD_STORE_KEY='nina_reward_draft_v2';
