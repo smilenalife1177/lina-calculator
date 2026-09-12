@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="微笑娜生活萬用計算機">
 
-<title>微笑娜生活萬用計算機™ v2.9｜答案不用找</title>
+<title>微笑娜生活萬用計算機™ v3.0｜旅遊幣別補齊</title>
 <style>
 :root{
   --bg:#fffaf6; --card:#ffffff; --text:#3d3a38; --muted:#8b817b;
@@ -147,7 +147,7 @@ button{cursor:pointer}
 }
 
 
-/* v2.9｜答案不用找 */
+/* v3.0｜旅遊幣別補齊 */
 .basicTopResult .result{
   margin-top:8px;
   padding:11px 14px;
@@ -186,7 +186,7 @@ button{cursor:pointer}
     <div class="brand">
       <div>
         <h1>🧮 微笑娜生活萬用計算機™</h1>
-        <div class="ver">v2.9｜答案不用找 ・ 算一下，生活就清楚一點</div>
+        <div class="ver">v3.0｜旅遊幣別補齊 ・ 算一下，生活就清楚一點</div>
       </div>
       <button class="iconbtn" id="favOnly" title="只看收藏">☆</button>
     </div>
@@ -378,7 +378,7 @@ ${input('tipBase','消費金額','1000')}
 <div class="row"><div>${input('tipRate','服務費 %','','10')}</div><div>${input('tipPeople','分攤人數','','2')}</div></div>
 <button class="primary" onclick="calcTip()">計算服務費與分攤</button><div id="out"></div>
 <div class="info">先算服務費，再將含服務費總額平均分攤。填 1 人時，也可當一般服務費計算機使用。</div></div>`,
-fx:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>最新日參考匯率</div>
+fx:()=>`<div class="calcCard"><div class="live"><span class="dot"></span>18 種常用幣別・最新日參考匯率</div>
 ${input('fxAmt','金額','','100')}
 <div class="row">
   <div>${fxSelect('fxFrom','從','USD')}</div>
@@ -669,9 +669,24 @@ function calcTip(){
  out(result(`每人 $ ${money(each)}`,`服務費 $${money(fee)} ・ 含服務費總額 $${money(total)} ・ ${people} 人分攤`))
 }
 const FX_CURRENCIES=[
-  ['TWD','TWD 新台幣'],['USD','USD 美元'],['JPY','JPY 日圓'],['EUR','EUR 歐元'],
-  ['GBP','GBP 英鎊'],['KRW','KRW 韓元'],['CNY','CNY 人民幣'],['HKD','HKD 港幣'],
-  ['AUD','AUD 澳幣'],['CAD','CAD 加幣'],['SGD','SGD 新加坡幣']
+  ['TWD','TWD 新台幣'],
+  ['USD','USD 美元'],
+  ['JPY','JPY 日圓'],
+  ['KRW','KRW 韓元'],
+  ['THB','THB 泰銖'],
+  ['CNY','CNY 人民幣'],
+  ['HKD','HKD 港幣'],
+  ['EUR','EUR 歐元'],
+  ['GBP','GBP 英鎊'],
+  ['SGD','SGD 新加坡幣'],
+  ['MYR','MYR 馬來西亞令吉'],
+  ['VND','VND 越南盾'],
+  ['PHP','PHP 菲律賓披索'],
+  ['IDR','IDR 印尼盾'],
+  ['AUD','AUD 澳幣'],
+  ['NZD','NZD 紐西蘭幣'],
+  ['CAD','CAD 加幣'],
+  ['CHF','CHF 瑞士法郎']
 ];
 function fxSelect(id,label,selected){
   const opts=FX_CURRENCIES.map(x=>`<option value="${x[0]}" ${x[0]===selected?'selected':''}>${x[1]}</option>`).join('');
@@ -687,7 +702,26 @@ const FX_FALLBACK = {
   date:'離線示範值',
   base:'TWD',
   // 僅供 content:// / file:// 本機測試介面與計算流程；正式 https 會優先抓即時公開匯率。
-  rates:{TWD:1,USD:0.0306,JPY:4.53,EUR:0.0262,GBP:0.0227,KRW:42.65,CNY:0.213,HKD:0.238,AUD:0.0468,CAD:0.0422,SGD:0.0393}
+  rates:{
+    TWD:1,
+    USD:0.0306,
+    JPY:4.53,
+    KRW:42.65,
+    THB:1.01,
+    CNY:0.213,
+    HKD:0.238,
+    EUR:0.0262,
+    GBP:0.0227,
+    SGD:0.0393,
+    MYR:0.129,
+    VND:785,
+    PHP:1.91,
+    IDR:537,
+    AUD:0.0468,
+    NZD:0.0516,
+    CAD:0.0422,
+    CHF:0.0248
+  }
 };
 function fallbackFxRate(from,to){
   const r=FX_FALLBACK.rates;
